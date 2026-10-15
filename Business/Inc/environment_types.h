@@ -23,7 +23,6 @@ typedef enum {                                      /* 定义系统整体状态�
 
 typedef enum {                                      /* 定义报警的直接触发来源。 */
     ENV_ALERT_NONE = 0,                             /* 当前没有已锁存的报警原因。 */
-    ENV_ALERT_OBSTACLE,                             /* 红外避障模块检测到近距离障碍。 */
     ENV_ALERT_DISTANCE,                             /* 超声波距离低于报警阈值。 */
     ENV_ALERT_MOTION                                /* MPU6050检测到明显运动。 */
 } EnvAlertReason_t;                                 /* 将枚举类型命名为EnvAlertReason_t。 */
@@ -56,12 +55,6 @@ typedef struct {                                    /* 定义一次HC-SR04测距
     bool valid;                                     /* true表示本次距离数据有效。 */
 } EnvDistanceSample_t;                              /* 将结构体类型命名为EnvDistanceSample_t。 */
 
-typedef struct {                                    /* 定义红外避障传感器的状态。 */
-    uint32_t timestamp_ms;                          /* 记录读取避障状态的时刻。 */
-    bool obstacle_detected;                         /* true表示模块检测到近距离障碍物。 */
-    bool valid;                                     /* true表示已经至少读取过一次该模块。 */
-} EnvObstacleSample_t;                              /* 将结构体类型命名为EnvObstacleSample_t。 */
-
 typedef struct {                                    /* 定义一次红外遥控按键结果。 */
     uint32_t timestamp_ms;                          /* 记录解码出按键的时刻。 */
     uint8_t device;                                 /* 保存NEC协议中的设备地址。 */
@@ -82,7 +75,6 @@ typedef struct {                                    /* 定义ControlTask发给Ui
     EnvSample_t environment;                        /* 保存最新DHT11温湿度结果。 */
     EnvMotionSample_t motion;                       /* 保存最新MPU6050运动结果。 */
     EnvDistanceSample_t distance;                   /* 保存最新HC-SR04测距结果。 */
-    EnvObstacleSample_t obstacle;                   /* 保存最新红外避障状态。 */
     EnvIrKey_t ir_key;                              /* 保存最后一次红外遥控按键。 */
     EnvIndicatorCommand_t indicator;                /* 保存当前RGB灯应执行的效果。 */
 } EnvSnapshot_t;                                    /* 将结构体类型命名为EnvSnapshot_t。 */

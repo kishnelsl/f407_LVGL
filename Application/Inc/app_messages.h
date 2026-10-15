@@ -11,7 +11,6 @@ typedef enum {                                      /* 定义应用事件的类�
     APP_EVENT_DHT11_SAMPLE = 0,                     /* 表示SensorTask完成一次DHT11读取。 */
     APP_EVENT_MPU6050_SAMPLE,                       /* 表示SensorTask完成一次MPU6050读取。 */
     APP_EVENT_DISTANCE_SAMPLE,                      /* 表示MeasureTask完成一次HC-SR04测距。 */
-    APP_EVENT_OBSTACLE_SAMPLE,                      /* 表示MeasureTask读到避障状态变化。 */
     APP_EVENT_IR_KEY                                /* 表示InputTask读到一颗红外遥控按键。 */
 } AppEventType_t;                                   /* 将枚举类型命名为AppEventType_t。 */
 
@@ -21,7 +20,6 @@ typedef struct {                                    /* 定义放入事件队列�
         EnvSample_t environment;                    /* DHT11事件使用这一项。 */
         EnvMotionSample_t motion;                   /* MPU6050事件使用这一项。 */
         EnvDistanceSample_t distance;               /* HC-SR04事件使用这一项。 */
-        EnvObstacleSample_t obstacle;               /* 红外避障事件使用这一项。 */
         EnvIrKey_t ir_key;                          /* 红外遥控事件使用这一项。 */
     } data;                                         /* 将联合体成员命名为data。 */
 } AppEvent_t;                                       /* 将整个事件结构体类型命名为AppEvent_t。 */

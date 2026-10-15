@@ -6,7 +6,7 @@ extern "C" {                                /* 让下面的任务函数使用C�
 #endif                                      /* 结束C++编译器判断。 */
 
 void App_SensorTask(void *argument);        /* 周期读取DHT11和MPU6050。 */
-void App_MeasureTask(void *argument);       /* 周期读取HC-SR04和红外避障模块。 */
+void App_MeasureTask(void *argument);       /* 周期读取HC-SR04。 */
 void App_InputTask(void *argument);         /* 读取红外接收驱动已解码的遥控键。 */
 void App_ControlTask(void *argument);       /* 独占处理业务状态、报警和快照发布。 */
 void App_IndicatorTask(void *argument);     /* 独占驱动RGB报警灯的颜色和闪烁。 */

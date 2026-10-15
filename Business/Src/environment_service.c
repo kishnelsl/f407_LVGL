@@ -26,14 +26,9 @@ static void EnvironmentService_Recalculate(
         sensor_error = true;
     }
 
-    if(service->has_obstacle_sample &&
-       service->snapshot.obstacle.obstacle_detected) {
-        risk_detected = true;
-        reason = ENV_ALERT_OBSTACLE;
-    }
-    else if(service->has_distance_sample &&
-            service->snapshot.distance.valid &&
-            service->snapshot.distance.distance_cm <= ENV_DISTANCE_ALARM_CM) {
+    if(service->has_distance_sample &&
+       service->snapshot.distance.valid &&
+       service->snapshot.distance.distance_cm <= ENV_DISTANCE_ALARM_CM) {
         risk_detected = true;
         reason = ENV_ALERT_DISTANCE;
     }
@@ -161,26 +156,6 @@ void EnvironmentService_ApplyDistanceSample(
 
     service->snapshot.distance = *sample;
     service->has_distance_sample = true;
-    service->snapshot.version++;
-    EnvironmentService_Recalculate(service);
-}
-
-/**
- * @brief 应用一份红外避障采样结果。
- * @param service 函数输入或输出参数。
- * @param sample 函数输入或输出参数。
- * @return None
- */
-void EnvironmentService_ApplyObstacleSample(
-    EnvironmentService_t *service,                       /* service是要修改的业务对象。 */
-    const EnvObstacleSample_t *sample)                  /* sample是传入的避障数据。 */
-{
-    if(service == NULL || sample == NULL) {
-        return;
-    }
-
-    service->snapshot.obstacle = *sample;
-    service->has_obstacle_sample = true;
     service->snapshot.version++;
     EnvironmentService_Recalculate(service);
 }

@@ -49,7 +49,6 @@ set(USER_DSHANMCU_F407_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/DshanMCU-F407/driver_color_led_f407.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/DshanMCU-F407/driver_cst816d_f407.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/DshanMCU-F407/driver_dht11_f407.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/DshanMCU-F407/driver_ir_obstacle_f407.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/DshanMCU-F407/driver_ir_receiver_f407.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/DshanMCU-F407/driver_mpu6050_f407.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/DshanMCU-F407/driver_timer_f407.c

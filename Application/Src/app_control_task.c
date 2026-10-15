@@ -73,11 +73,6 @@ void App_ControlTask(void *argument)
                 &service,
                 &event.data.distance);
             break;
-        case APP_EVENT_OBSTACLE_SAMPLE:
-            EnvironmentService_ApplyObstacleSample(
-                &service,
-                &event.data.obstacle);
-            break;
         case APP_EVENT_IR_KEY:
             EnvironmentService_ApplyIrKey(
                 &service,

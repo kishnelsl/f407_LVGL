@@ -8,7 +8,7 @@
 
 #define UI_SCREEN_WIDTH       240
 #define UI_SCREEN_HEIGHT      296
-#define UI_PAGE_COUNT           6
+#define UI_PAGE_COUNT           5
 
 #define UI_COLOR_BG       0x07111FU
 #define UI_COLOR_CARD     0x101E32U
@@ -32,13 +32,11 @@ static lv_obj_t *s_distance_status_label;          /* 保存超声波页状态�
 static lv_obj_t *s_motion_state_label;             /* 保存MPU6050页运动状态标签。 */
 static lv_obj_t *s_motion_accel_label;             /* 保存MPU6050页三轴加速度标签。 */
 static lv_obj_t *s_motion_gyro_label;              /* 保存MPU6050页三轴角速度标签。 */
-static lv_obj_t *s_obstacle_state_label;           /* 保存红外避障页状态标签。 */
-static lv_obj_t *s_obstacle_detail_label;          /* 保存红外避障页电平说明标签。 */
 static lv_obj_t *s_remote_command_label;           /* 保存红外遥控页命令码标签。 */
 static lv_obj_t *s_remote_device_label;            /* 保存红外遥控页设备地址标签。 */
 static lv_obj_t *s_remote_hint_label;              /* 保存红外遥控页操作提示标签。 */
 static lv_obj_t *s_system_card;                    /* 保存系统页状态卡片，用于改变强调色。 */
-static lv_obj_t *s_pages[UI_PAGE_COUNT];           /* 保存六个独立页面对象地址。 */
+static lv_obj_t *s_pages[UI_PAGE_COUNT];           /* 保存五个独立页面对象地址。 */
 static uint32_t s_current_page;                    /* 保存当前正在显示的页面序号。 */
 static uint32_t s_last_version = UINT32_MAX;       /* 保存上次显示版本，确保第一次更新。 */
 static int8_t s_pending_navigation;                /* 保存按钮提交、等待主循环执行的切页方向。 */
@@ -81,9 +79,9 @@ static lv_obj_t *UI_CreateNavigationButton(        /* 创建统一样式的翻�
     lv_obj_t *button = lv_button_create(page);     /* 在当前页面创建LVGL按钮。 */
     lv_obj_t *label;                               /* 保存按钮内部文字对象。 */
 
-    lv_obj_set_size(button, 72, 28);
-    lv_obj_set_pos(button, x, 264);
-    lv_obj_set_style_radius(button, 10, 0);
+    lv_obj_set_size(button, 100, 44);
+    lv_obj_set_pos(button, x, 244);
+    lv_obj_set_style_radius(button, 8, 0);
     lv_obj_set_style_bg_color(button,
                               lv_color_hex(UI_COLOR_BORDER),
                               0);
@@ -162,7 +160,7 @@ static lv_obj_t *UI_CreatePage(                    /* 创建一个独立的完�
     }
     label = UI_CreateNavigationButton(page,
                                       "NEXT >",
-                                      152,
+                                      124,
                                       UI_NextButtonEvent);
     if(index + 1U == UI_PAGE_COUNT) {
         lv_obj_add_state(label, LV_STATE_DISABLED);
@@ -175,7 +173,7 @@ static lv_obj_t *UI_CreateMainCard(                /* 创建每页唯一的主�
 {
     lv_obj_t *card = lv_obj_create(page);          /* 在页面上创建卡片。 */
 
-    lv_obj_set_size(card, 208, 188);
+    lv_obj_set_size(card, 208, 166);
     lv_obj_set_pos(card, 16, 70);
     lv_obj_set_style_bg_color(card,
                               lv_color_hex(UI_COLOR_CARD),
@@ -248,7 +246,6 @@ static uint32_t UI_StateColor(EnvState_t state)
 static const char *UI_AlertText(EnvAlertReason_t reason) /* 将报警来源转换成说明。 */
 {
     switch(reason) {
-    case ENV_ALERT_OBSTACLE: return "IR obstacle detected";
     case ENV_ALERT_DISTANCE: return "Object is too close";
     case ENV_ALERT_MOTION: return "Motion detected";
     case ENV_ALERT_NONE:
@@ -299,10 +296,10 @@ void UI_AppCreate(void)
     lv_obj_set_style_text_font(s_dht_temperature_label, &lv_font_montserrat_28, 0);
     lv_obj_set_pos(s_dht_temperature_label, 18, 42);
     label = UI_CreateLabel(card, "HUMIDITY", UI_COLOR_MUTED);
-    lv_obj_set_pos(label, 18, 91);
+    lv_obj_set_pos(label, 18, 82);
     s_dht_humidity_label = UI_CreateLabel(card, "--.- %", UI_COLOR_BLUE);
     lv_obj_set_style_text_font(s_dht_humidity_label, &lv_font_montserrat_28, 0);
-    lv_obj_set_pos(s_dht_humidity_label, 18, 115);
+    lv_obj_set_pos(s_dht_humidity_label, 18, 102);
     s_dht_status_label = UI_CreateLabel(card, "Waiting for first sample", UI_COLOR_MUTED);
     lv_obj_align(s_dht_status_label, LV_ALIGN_BOTTOM_LEFT, 18, -14);
 
@@ -330,19 +327,7 @@ void UI_AppCreate(void)
     label = UI_CreateLabel(card, "mg / deg per second", UI_COLOR_MUTED);
     lv_obj_align(label, LV_ALIGN_BOTTOM_MID, 0, -16);
 
-    page = UI_CreatePage(screen, 4U, "IR OBSTACLE", "NEAR OBJECT DETECTOR");
-    card = UI_CreateMainCard(page);
-    s_obstacle_state_label = UI_CreateLabel(card, "WAITING", UI_COLOR_BLUE);
-    lv_obj_set_width(s_obstacle_state_label, 176);
-    lv_obj_set_style_text_align(s_obstacle_state_label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_style_text_font(s_obstacle_state_label, &lv_font_montserrat_28, 0);
-    lv_obj_align(s_obstacle_state_label, LV_ALIGN_CENTER, 0, -22);
-    s_obstacle_detail_label = UI_CreateLabel(card, "PB13 has not been sampled", UI_COLOR_MUTED);
-    lv_obj_set_width(s_obstacle_detail_label, 176);
-    lv_obj_set_style_text_align(s_obstacle_detail_label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_align(s_obstacle_detail_label, LV_ALIGN_BOTTOM_MID, 0, -32);
-
-    page = UI_CreatePage(screen, 5U, "IR REMOTE", "NEC RECEIVER");
+    page = UI_CreatePage(screen, 4U, "IR REMOTE", "NEC RECEIVER");
     card = UI_CreateMainCard(page);
     label = UI_CreateLabel(card, "LAST COMMAND", UI_COLOR_MUTED);
     lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 18);
@@ -482,18 +467,6 @@ void UI_AppUpdate(const EnvSnapshot_t *snapshot)
         UI_SetLabel(s_motion_state_label, text, UI_COLOR_PURPLE);
         UI_SetLabel(s_motion_accel_label, "ACC  X --  Y --  Z --", UI_COLOR_MUTED);
         UI_SetLabel(s_motion_gyro_label, "GYR  X --  Y --  Z --", UI_COLOR_MUTED);
-    }
-
-    if(snapshot->obstacle.valid) {
-        UI_SetLabel(s_obstacle_state_label,
-                    snapshot->obstacle.obstacle_detected ?
-                    "OBSTACLE" : "PATH CLEAR",
-                    snapshot->obstacle.obstacle_detected ? UI_COLOR_RED : UI_COLOR_GREEN);
-        UI_SetLabel(s_obstacle_detail_label,
-                    snapshot->obstacle.obstacle_detected ?
-                    "PB13 is LOW (active)" :
-                    "PB13 is HIGH (idle)",
-                    UI_COLOR_MUTED);
     }
 
     (void)snprintf(text, sizeof(text), "0x%02X",

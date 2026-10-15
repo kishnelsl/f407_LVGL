@@ -12,7 +12,6 @@ typedef struct {                                       /* 定义只由ControlTas
     bool has_environment_sample;                       /* 记录是否已经收到过DHT11采样。 */
     bool has_motion_sample;                            /* 记录是否已经收到过MPU6050采样。 */
     bool has_distance_sample;                          /* 记录是否已经收到过HC-SR04采样。 */
-    bool has_obstacle_sample;                          /* 记录是否已经读取过红外避障状态。 */
     bool alarm_latched;                                /* true表示报警已锁存，需遥控器解除。 */
 } EnvironmentService_t;                                /* 将结构体类型命名为EnvironmentService_t。 */
 
@@ -26,9 +25,6 @@ void EnvironmentService_ApplyMotionSample(             /* 应用一份MPU6050采
 void EnvironmentService_ApplyDistanceSample(           /* 应用一份HC-SR04测距结果。 */
     EnvironmentService_t *service,                     /* service是待修改的业务服务。 */
     const EnvDistanceSample_t *sample);                /* sample是新的距离结果。 */
-void EnvironmentService_ApplyObstacleSample(           /* 应用红外避障模块的状态变化。 */
-    EnvironmentService_t *service,                     /* service是待修改的业务服务。 */
-    const EnvObstacleSample_t *sample);                /* sample是新的避障状态。 */
 void EnvironmentService_ApplyIrKey(                    /* 应用一次红外遥控按键。 */
     EnvironmentService_t *service,                     /* service是待修改的业务服务。 */
     const EnvIrKey_t *key);                            /* key是解码得到的遥控按键。 */

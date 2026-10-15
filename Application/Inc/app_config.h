@@ -19,7 +19,7 @@
 #define APP_MPU6050_RETRY_PERIOD_MS      1000U        /* MPU6050失败后每1秒重新初始化一次。 */
 #define APP_MPU6050_MOTION_DELTA_MG      1200         /* 加速度单轴变化超过1200mg视为明显运动。 */
 
-#define APP_MEASURE_TASK_PERIOD_MS         20U        /* MeasureTask每20毫秒查询避障和非阻塞ECHO结果。 */
+#define APP_MEASURE_TASK_PERIOD_MS         20U        /* MeasureTask每20毫秒查询非阻塞ECHO结果。 */
 #define APP_SR04_SAMPLE_PERIOD_MS         400U        /* HC-SR04测距周期为400毫秒。 */
 #define APP_INPUT_TASK_PERIOD_MS           20U        /* InputTask每20毫秒取一次已解码的遥控键。 */
 #define APP_INDICATOR_BLINK_PERIOD_MS     300U        /* RGB报警灯每300毫秒切换一次亮灭。 */
