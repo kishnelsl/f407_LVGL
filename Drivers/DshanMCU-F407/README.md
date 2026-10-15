@@ -54,3 +54,9 @@ F407_CST816D_Init();
 ```
 
 LVGL 的 `flush_cb` 可直接调用 `F407_ST7789_Flush(x1, y1, x2, y2, color_p)`，函数会把主机端 RGB565 转成 ST7789 所需的高字节在前格式。
+
+当前 LVGL 移植使用 `F407_ST7789_FlushDMA()` 异步发送像素，原来的 `F407_ST7789_Flush()` 保留为阻塞接口。SPI3 TX 使用 DMA1 Stream5 / Channel0、Normal 模式、字节对齐和内存地址递增；DMA 与 SPI3 中断优先级均为 5，配置已同步到 `.ioc`。
+
+DMA 接口会原地转换 RGB565 字节序，缓冲区必须位于 DMA 可访问的 SRAM，不能位于 CCMRAM。发送期间不能修改缓冲区或调用其他 LCD 接口；超过 65534 字节的区域由 DMA 完成回调分段续传。命令和窗口设置仍使用阻塞发送。
+
+`F407_ST7789_FlushCompleteCallback()` 在中断中通知 UI 任务的静态二值信号量。LVGL 的 `flush_wait_cb` 阻塞等待完成后才调用 `lv_display_flush_ready()`；错误或 250ms 超时会先中止 SPI/DMA，再释放缓冲区。可在调试器观察 `f407_lvgl.c` 中的 `s_flush_error_count`。当前仍使用单个 30 行绘图缓冲区，DMA 等待期间其他 FreeRTOS 任务可以运行；SPI 时钟保持 21MHz。

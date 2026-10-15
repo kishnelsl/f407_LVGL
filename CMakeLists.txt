@@ -73,6 +73,7 @@ set(LVGL_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/lvgl)
 file(GLOB LVGL_SOURCES CONFIGURE_DEPENDS
     ${LVGL_ROOT}/src/*.c
     ${LVGL_ROOT}/src/core/*.c
+    ${LVGL_ROOT}/src/debugging/sysmon/*.c
     ${LVGL_ROOT}/src/display/*.c
     ${LVGL_ROOT}/src/draw/*.c
     ${LVGL_ROOT}/src/draw/convert/*.c

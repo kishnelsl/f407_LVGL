@@ -35,6 +35,7 @@ extern "C" {
 extern SPI_HandleTypeDef hspi1;
 
 extern SPI_HandleTypeDef hspi3;
+extern DMA_HandleTypeDef hdma_spi3_tx;
 
 /* USER CODE BEGIN Private defines */
 

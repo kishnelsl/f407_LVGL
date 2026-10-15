@@ -1,14 +1,17 @@
 #include "f407_lvgl.h"
+#include "main.h"
 
 #include "driver_st7789_f407.h"
 #include "driver_cst816d_f407.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "semphr.h"
 #include "lvgl.h"
 #include "stm32f4xx_hal.h"
 
 #define F407_LVGL_BUF_LINES 30U
 #define F407_LVGL_BUF_BYTES (F407_ST7789_WIDTH * F407_LVGL_BUF_LINES * 2U)
+#define F407_LVGL_DMA_TIMEOUT_MS 250U
 
 LV_ATTRIBUTE_MEM_ALIGN
 static uint8_t s_draw_buf[F407_LVGL_BUF_BYTES];
@@ -19,6 +22,10 @@ static uint32_t s_rtos_tick_offset;
 static uint16_t s_touch_last_x;
 static uint16_t s_touch_last_y;
 static uint8_t s_rtos_tick_synchronized;
+static StaticSemaphore_t s_flush_semaphore_storage;
+static SemaphoreHandle_t s_flush_semaphore;
+static volatile int s_flush_status;
+static volatile uint32_t s_flush_error_count;
 
 /**
  * @brief 向LVGL提供当前触摸状态和坐标。
@@ -76,19 +83,45 @@ static uint32_t lvgl_tick_get(void)
  */
 static void display_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
-    if(area->x2 >= 0 && area->y2 >= 0 &&
-       area->x1 < (int32_t)F407_ST7789_WIDTH &&
-       area->y1 < (int32_t)F407_ST7789_HEIGHT) {
-        uint16_t x1 = (uint16_t)(area->x1 < 0 ? 0 : area->x1);
-        uint16_t y1 = (uint16_t)(area->y1 < 0 ? 0 : area->y1);
-        uint16_t x2 = (uint16_t)(area->x2 >= (int32_t)F407_ST7789_WIDTH ?
-                                 (int32_t)F407_ST7789_WIDTH - 1 : area->x2);
-        uint16_t y2 = (uint16_t)(area->y2 >= (int32_t)F407_ST7789_HEIGHT ?
-                                 (int32_t)F407_ST7789_HEIGHT - 1 : area->y2);
-
-        (void)F407_ST7789_Flush(x1, y1, x2, y2, (const uint16_t *)px_map);
+    /* PARTIAL mode supplies an in-bounds, tightly packed RGB565 region.
+     * Reject invalid areas: clipping coordinates alone changes the row stride. */
+    if(area->x1 < 0 || area->y1 < 0 || area->x1 > area->x2 || area->y1 > area->y2 ||
+       area->x2 >= (int32_t)F407_ST7789_WIDTH ||
+       area->y2 >= (int32_t)F407_ST7789_HEIGHT) {
+        s_flush_error_count++;
+        lv_display_flush_ready(disp);
+        return;
     }
 
+    (void)xSemaphoreTake(s_flush_semaphore, 0U);
+    s_flush_status = -1;
+    if(F407_ST7789_FlushDMA((uint16_t)area->x1, (uint16_t)area->y1,
+                            (uint16_t)area->x2, (uint16_t)area->y2,
+                            (uint16_t *)px_map) != 0) {
+        s_flush_error_count++;
+        if(F407_ST7789_AbortDMA() != 0) Error_Handler();
+        lv_display_flush_ready(disp);
+    }
+}
+
+void F407_ST7789_FlushCompleteCallback(int status)
+{
+    BaseType_t higher_priority_task_woken = pdFALSE;
+
+    s_flush_status = status;
+    (void)xSemaphoreGiveFromISR(s_flush_semaphore, &higher_priority_task_woken);
+    portYIELD_FROM_ISR(higher_priority_task_woken);
+}
+
+static void display_flush_wait_cb(lv_display_t *disp)
+{
+    /* Single-buffer rendering must wait, but other FreeRTOS tasks can run. */
+    if(xSemaphoreTake(s_flush_semaphore,
+                       pdMS_TO_TICKS(F407_LVGL_DMA_TIMEOUT_MS)) != pdTRUE ||
+       s_flush_status != 0) {
+        s_flush_error_count++;
+        if(F407_ST7789_AbortDMA() != 0) Error_Handler();
+    }
     lv_display_flush_ready(disp);
 }
 
@@ -98,6 +131,11 @@ static void display_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t 
  */
 static int display_init(void)
 {
+    s_flush_semaphore = xSemaphoreCreateBinaryStatic(&s_flush_semaphore_storage);
+    if(s_flush_semaphore == NULL) {
+        return -1;
+    }
+
     if(F407_LCD_Init() != 0) {
         return -1;
     }
@@ -111,6 +149,7 @@ static int display_init(void)
     lv_display_set_buffers(s_display, s_draw_buf, NULL, sizeof(s_draw_buf),
                            LV_DISPLAY_RENDER_MODE_PARTIAL);
     lv_display_set_flush_cb(s_display, display_flush_cb);
+    lv_display_set_flush_wait_cb(s_display, display_flush_wait_cb);
     lv_display_set_default(s_display);
     return 0;
 }
